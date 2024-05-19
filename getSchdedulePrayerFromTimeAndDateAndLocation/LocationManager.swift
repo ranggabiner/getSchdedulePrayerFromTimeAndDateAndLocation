@@ -26,6 +26,14 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
             guard let placemark = placemarks?.first else { return }
             self.province = placemark.administrativeArea ?? "Unknown"
             self.city = placemark.locality ?? "Unknown"
+            
+            // Call your function to load prayer times here
+            if let prayerTimes = loadPrayerTimes(for: Date(), province: self.province, city: self.city) {
+                let nextPrayerTime = getNextPrayerTime(currentTime: Date(), prayerTimes: prayerTimes)
+                print("Next prayer time: \(nextPrayerTime)")
+            } else {
+                print("Prayer times not available for the current location.")
+            }
         }
     }
 }

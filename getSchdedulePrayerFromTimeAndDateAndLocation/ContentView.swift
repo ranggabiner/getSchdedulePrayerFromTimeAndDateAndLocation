@@ -36,9 +36,11 @@ struct ContentView: View {
         }
         .onReceive(locationManager.$province) { province in
             currentProvince = province
+            updatePrayerTime()
         }
         .onReceive(locationManager.$city) { city in
             currentCity = city
+            updatePrayerTime()
         }
     }
     
@@ -56,13 +58,15 @@ struct ContentView: View {
         
         dateFormatter.dateFormat = "HH:mm:ss"
         currentTime = dateFormatter.string(from: Date())
-        
+    }
+    
+    private func updatePrayerTime() {
         guard let location = locationManager.location else {
             print("Location not available")
             return
         }
         
-        if let prayerTimes = loadPrayerTimes(for: location, date: Date()) {
+        if let prayerTimes = loadPrayerTimes(for: Date(), province: currentProvince, city: currentCity) {
             prayerTime = getNextPrayerTime(currentTime: Date(), prayerTimes: prayerTimes)
         } else {
             prayerTime = "Error loading prayer times"

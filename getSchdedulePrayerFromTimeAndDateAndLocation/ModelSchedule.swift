@@ -1,5 +1,4 @@
 import Foundation
-import CoreLocation
 
 struct PrayerTimes: Decodable {
     let province: String
@@ -13,7 +12,7 @@ struct PrayerTimes: Decodable {
     let isha: String
 }
 
-func loadPrayerTimes(for location: CLLocation, date: Date) -> PrayerTimes? {
+func loadPrayerTimes(for date: Date, province: String, city: String) -> PrayerTimes? {
     guard let url = Bundle.main.url(forResource: "prayer_times", withExtension: "json") else {
         print("Error: File not found")
         return nil
@@ -22,27 +21,11 @@ func loadPrayerTimes(for location: CLLocation, date: Date) -> PrayerTimes? {
         let data = try Data(contentsOf: url)
         let prayerTimesArray = try JSONDecoder().decode([PrayerTimes].self, from: data)
         
-        let geocoder = CLGeocoder()
-        geocoder.reverseGeocodeLocation(location) { placemarks, error in
-            guard let placemark = placemarks?.first else {
-                print("Error getting placemark: \(error?.localizedDescription ?? "")")
-                return
-            }
-            let province = placemark.administrativeArea ?? ""
-            let city = placemark.locality ?? ""
-            
-            let dateFormatter = DateFormatter()
-            dateFormatter.dateFormat = "dd/MM/yy"
-            let targetDate = dateFormatter.string(from: date)
-            
-            guard let prayerTimes = prayerTimesArray.first(where: { $0.province == province && $0.city == city && $0.date == targetDate }) else {
-                print("Error: Prayer times not found for \(province), \(city), \(targetDate)")
-                return
-            }
-            print("Prayer times for \(province), \(city), \(targetDate): \(prayerTimes)")
-        }
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "dd/MM/yy"
+        let targetDate = dateFormatter.string(from: date)
         
-        return nil // Return value will be set asynchronously
+        return prayerTimesArray.first { $0.date == targetDate && $0.province == province && $0.city == city }
     } catch {
         print("Error loading JSON: \(error)")
         return nil
